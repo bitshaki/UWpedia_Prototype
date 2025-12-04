@@ -539,14 +539,14 @@ const HomeScreen = ({ isDarkMode }) => {
         <div className="flex justify-between items-start mb-6">
            <div>
               <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Hi, Bar <span className="animate-wave inline-block origin-bottom-right">👋</span>
+                Hi, User <span className="animate-wave inline-block origin-bottom-right">👋</span>
               </h1>
               <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Explore the Husky experience
               </p>
            </div>
            <div className={`w-10 h-10 rounded-full ${UW_PURPLE} flex items-center justify-center text-white font-bold border-2 border-white shadow-md`}>
-             BH
+             U
            </div>
         </div>
 
@@ -804,9 +804,9 @@ const ProfileScreen = ({ isDarkMode }) => {
          
          <div className="flex flex-col items-center">
             <div className={`w-28 h-28 ${UW_PURPLE} rounded-full flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg mb-4`}>
-              BH
+              U
             </div>
-            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Bar Husky</h2>
+            <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>User</h2>
             <p className="text-sm text-gray-500">Computer Science • Class of 2027</p>
          </div>
 
