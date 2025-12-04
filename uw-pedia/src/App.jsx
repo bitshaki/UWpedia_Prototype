@@ -381,6 +381,93 @@ function Iphone15Pro({
 
 // --- App Sub-Components ---
 
+// Mock AI Response Generator
+const generateMockResponse = (userMessage) => {
+  const lowerMsg = userMessage.toLowerCase();
+  
+  // Registration questions
+  if (lowerMsg.includes('registration') || lowerMsg.includes('register')) {
+    const regPost = POSTS.find(p => p.user === "UW Registrar");
+    if (regPost) {
+      return `**Registration Information**\n\n${regPost.content}\n\nMake sure to check your MyPlan audit before registration opens to avoid any holds!`;
+    }
+    return "**Registration**\n\nPriority Registration for Winter 2026 begins tomorrow at 6:00 AM PST. Seniors and Priority Groups should check their MyPlan audit tonight to avoid hold errors.";
+  }
+  
+  // IMA questions
+  if (lowerMsg.includes('ima') || lowerMsg.includes('gym') || lowerMsg.includes('workout')) {
+    const scheduleItem = PERSONAL_SCHEDULE.find(s => s.location.includes('IMA'));
+    return `**IMA (Intramural Activities Building)**\n\nThe IMA is located on the north side of campus. It's open daily and offers:\n* Fitness equipment\n* Group exercise classes\n* Basketball courts\n* Swimming pool\n* Rock climbing wall\n\nCheck the IMA website for current hours and availability!`;
+  }
+  
+  // HUB questions
+  if (lowerMsg.includes('hub') || lowerMsg.includes('husky union')) {
+    const hubPost = POSTS.find(p => p.user.includes('HUB'));
+    if (hubPost) {
+      return `**Husky Union Building (HUB)**\n\n${hubPost.content}\n\nThe HUB is the main student center on campus, located in the center of campus. It has dining options, study spaces, and event areas.`;
+    }
+    return "**HUB (Husky Union Building)**\n\nThe HUB is the main student center on campus. It features dining options, study spaces, gaming lounges, and hosts many student events. Check their website for current hours and activities!";
+  }
+  
+  // Financial aid questions
+  if (lowerMsg.includes('financial aid') || lowerMsg.includes('fafsa') || lowerMsg.includes('husky promise') || lowerMsg.includes('tuition')) {
+    const finAidPost = POSTS.find(p => p.user === "Financial Aid");
+    const fafsaDeadline = DEPT_DEADLINES.find(d => d.title.includes('FAFSA'));
+    let response = "**Financial Aid Information**\n\n";
+    if (finAidPost) {
+      response += `${finAidPost.content}\n\n`;
+    }
+    if (fafsaDeadline) {
+      response += `**Important:** ${fafsaDeadline.title} is ${fafsaDeadline.date}. ${fafsaDeadline.desc}`;
+    }
+    return response || "For financial aid questions, contact the Office of Student Financial Aid or check your MyUW account for updates.";
+  }
+  
+  // Deadlines questions
+  if (lowerMsg.includes('deadline') || lowerMsg.includes('due date') || lowerMsg.includes('application')) {
+    let response = "**Upcoming Deadlines**\n\n";
+    DEPT_DEADLINES.slice(0, 3).forEach(deadline => {
+      response += `* **${deadline.title}**: ${deadline.date}\n  ${deadline.desc}\n\n`;
+    });
+    return response.trim();
+  }
+  
+  // Schedule questions
+  if (lowerMsg.includes('schedule') || lowerMsg.includes('class') || lowerMsg.includes('today')) {
+    let response = "**Today's Schedule**\n\n";
+    PERSONAL_SCHEDULE.forEach(item => {
+      response += `* **${item.title}**\n  ${item.time} at ${item.location}\n\n`;
+    });
+    return response.trim();
+  }
+  
+  // Cherry blossoms
+  if (lowerMsg.includes('cherry') || lowerMsg.includes('blossom') || lowerMsg.includes('quad')) {
+    const cherryPost = POSTS.find(p => p.content.includes('Cherry Blossom'));
+    if (cherryPost) {
+      return `**Cherry Blossom Update** 🌸\n\n${cherryPost.content}`;
+    }
+    return "The Quad's cherry blossoms are a beautiful spring tradition at UW! Peak bloom typically occurs in late March to early April. Check UW Alert for current bloom status.";
+  }
+  
+  // CSE questions
+  if (lowerMsg.includes('cse') || lowerMsg.includes('computer science')) {
+    const csePost = POSTS.find(p => p.content.includes('CSE 142'));
+    if (csePost) {
+      return `**CSE Information**\n\n${csePost.content}\n\nFor more information about the Computer Science program, check the Paul G. Allen School website.`;
+    }
+    return "**Computer Science & Engineering**\n\nThe Paul G. Allen School offers various CSE courses. CSE 142 is an introductory programming course. Check the Allen School website for course details and prerequisites.";
+  }
+  
+  // Study group questions
+  if (lowerMsg.includes('study group') || lowerMsg.includes('study')) {
+    return "**Study Groups**\n\nMany students form study groups for their classes! You can:\n* Post in class discussion forums\n* Check the UWpedia feed for study group requests\n* Visit the HUB study spaces to meet other students\n* Join department-specific student organizations";
+  }
+  
+  // Default helpful response
+  return `I can help you with information about:\n\n* **Registration** - When and how to register for classes\n* **Campus locations** - IMA, HUB, and other buildings\n* **Deadlines** - Important dates and application deadlines\n* **Financial aid** - FAFSA, Husky Promise, and tuition\n* **Schedule** - Your class schedule and events\n* **Campus life** - Events, activities, and resources\n\nTry asking about any of these topics, or check the feed for the latest updates!`;
+};
+
 const ChatOverlay = ({ isOpen, onClose, isDarkMode }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
@@ -396,35 +483,52 @@ const ChatOverlay = ({ isOpen, onClose, isDarkMode }) => {
     setIsLoading(true);
 
     try {
-      const apiKey = ""; 
-      const appContext = `
-        You are a helpful assistant for UWpedia (University of Washington).
-        Data: ${JSON.stringify(POSTS.map(p => `${p.user}: ${p.content}`))}
-        IMPORTANT FORMATTING:
-        - Use ### for headers
-        - Use **text** for bold
-        - Use * for bullet points
-        - Keep responses concise and mobile-friendly
-      `;
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `${appContext}\n\nUser Question: ${userMsg}` }] }]
-          })
-        }
-      );
-
-      const data = await response.json();
-      const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't connect to the Husky network right now.";
+      // Try to use API key from environment variable if available
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || ""; 
       
-      setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
+      if (apiKey) {
+        // Use real API if key is available
+        const appContext = `
+          You are a helpful assistant for UWpedia (University of Washington).
+          Data: ${JSON.stringify(POSTS.map(p => `${p.user}: ${p.content}`))}
+          IMPORTANT FORMATTING:
+          - Use ### for headers
+          - Use **text** for bold
+          - Use * for bullet points
+          - Keep responses concise and mobile-friendly
+        `;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `${appContext}\n\nUser Question: ${userMsg}` }] }]
+            })
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || generateMockResponse(userMsg);
+          setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
+        } else {
+          // Fall back to mock if API fails
+          const botReply = generateMockResponse(userMsg);
+          setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
+        }
+      } else {
+        // Use mock response system
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
+        const botReply = generateMockResponse(userMsg);
+        setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
+      }
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'bot', text: "My connection is a bit spotty. Please try again." }]);
+      // Fall back to mock response on error
+      const botReply = generateMockResponse(userMsg);
+      setMessages(prev => [...prev, { role: 'bot', text: botReply }]);
     } finally {
       setIsLoading(false);
     }
