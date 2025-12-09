@@ -979,13 +979,149 @@ const ProfileScreen = ({ isDarkMode }) => {
 
 // --- Main Layout ---
 
+// Onboarding Screen Component
+const OnboardingScreen = ({ onLoginSuccess }) => {
+  const handleUWNetIDLogin = () => {
+    // In production, this would redirect to UW's Shibboleth/SAML authentication
+    // For now, we'll simulate the login by calling onLoginSuccess after a brief delay
+    // In a real implementation, you would redirect to:
+    // const uwLoginUrl = 'https://idp.u.washington.edu/idp/profile/SAML2/Redirect/SSO?execution=e1s1';
+    // window.location.href = uwLoginUrl;
+    
+    // Simulate authentication flow
+    // After successful authentication, UW would redirect back to your app with a token
+    // For demo purposes, we'll just mark onboarding as complete
+    setTimeout(() => {
+      onLoginSuccess();
+    }, 500);
+  };
+
+  return (
+    <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-[#4b2e83] via-[#5a3a93] to-[#4b2e83] p-8 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-[#b7a57a] opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-[#b7a57a] opacity-10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center max-w-md w-full">
+        {/* UW Logo/Icon */}
+        <div className="mb-8">
+          <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#4b2e83] to-[#5a3a93] rounded-2xl flex items-center justify-center">
+              <span className="text-white text-3xl font-bold">W</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Welcome Text */}
+        <h1 className="text-4xl font-bold text-white mb-3 text-center">
+          Welcome to UWpedia
+        </h1>
+        <p className="text-lg text-purple-100 mb-2 text-center">
+          Your gateway to the University of Washington
+        </p>
+        <p className="text-sm text-purple-200 mb-12 text-center max-w-sm">
+          Connect with campus resources, stay updated on deadlines, and explore everything UW has to offer
+        </p>
+
+        {/* UW NetID Login Button */}
+        <button
+          onClick={handleUWNetIDLogin}
+          className="w-full bg-white text-[#4b2e83] font-bold py-4 px-6 rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group"
+        >
+          <Shield size={24} className="text-[#4b2e83] group-hover:scale-110 transition-transform" />
+          <span className="text-lg">Sign in with UW NetID</span>
+          <ChevronRight size={20} className="text-[#4b2e83] group-hover:translate-x-1 transition-transform" />
+        </button>
+
+        {/* Info Text */}
+        <div className="mt-8 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+          <div className="flex items-start gap-3">
+            <Shield size={20} className="text-[#b7a57a] mt-0.5 flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-white text-sm font-medium mb-1">Secure Authentication</p>
+              <p className="text-purple-100 text-xs leading-relaxed">
+                Your UW NetID credentials are managed by the University of Washington. We never see or store your password.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center">
+          <p className="text-purple-200 text-xs">
+            By continuing, you agree to UW's terms of service
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
-  const [onboardingComplete, setOnboardingComplete] = useState(true); 
+  const [onboardingComplete, setOnboardingComplete] = useState(false); 
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentTab, setCurrentTab] = useState('home');
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  const handleLoginSuccess = () => {
+    setOnboardingComplete(true);
+  };
+
+  // Show onboarding screen if not completed
+  if (!onboardingComplete) {
+    return (
+      <div className={`w-full min-h-screen flex justify-center items-center p-8 font-sans transition-colors duration-500 ${isDarkMode ? 'bg-[#111]' : 'bg-[#eef0f4]'}`}>
+        <div className="flex gap-12 items-start">
+          {/* IPHONE 15 PRO SVG FRAME */}
+          <div className={`relative ${isDarkMode ? 'dark' : ''}`}>
+            <Iphone15Pro className="h-[852px] w-auto drop-shadow-2xl">
+              <div className={`h-full w-full flex flex-col relative ${isDarkMode ? 'bg-gray-950' : 'bg-gray-50'}`}>
+                <div className="flex-1 overflow-hidden relative">
+                  <OnboardingScreen onLoginSuccess={handleLoginSuccess} />
+                </div>
+              </div>
+            </Iphone15Pro>
+          </div>
+
+          {/* Demo Controls */}
+          <div className="flex flex-col gap-6 pt-20 w-64">
+            <div className="bg-white p-6 rounded-3xl shadow-xl flex flex-col gap-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-purple-100 text-purple-700 rounded-lg">
+                  <Settings size={20} />
+                </div>
+                <h3 className="font-bold text-gray-800">Settings</h3>
+              </div>
+              
+              <button 
+                onClick={toggleDarkMode}
+                className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 font-medium"
+              >
+                <span className="flex items-center gap-2">
+                  {isDarkMode ? <Sun size={16} className="text-orange-500"/> : <Moon size={16} className="text-blue-600"/>}
+                  Theme
+                </span>
+                <span className="text-xs text-gray-400 bg-white px-2 py-1 rounded-md border shadow-sm">{isDarkMode ? 'Dark' : 'Light'}</span>
+              </button>
+            </div>
+
+            <div className="bg-[#4b2e83] p-6 rounded-3xl shadow-xl text-white relative overflow-hidden">
+              <div className="absolute -right-6 -top-6 w-24 h-24 bg-[#b7a57a] rounded-full opacity-20 blur-2xl"></div>
+              <h3 className="font-bold mb-2">UWpedia v1.0</h3>
+              <p className="text-sm text-purple-200 leading-relaxed">
+                Interactive prototype featuring iPhone 15 Pro styling, real UW mock data, and Gemini-powered assistance.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-full min-h-screen flex justify-center items-center p-8 font-sans selection:bg-purple-200 transition-colors duration-500 ${isDarkMode ? 'bg-[#111]' : 'bg-[#eef0f4]'}`}>
@@ -1100,12 +1236,12 @@ const App = () => {
              </button>
 
               <button 
-              onClick={() => setOnboardingComplete(!onboardingComplete)}
+              onClick={() => setOnboardingComplete(false)}
               className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 hover:bg-gray-100 transition-colors text-sm text-gray-700 font-medium"
              >
                <span className="flex items-center gap-2">
                  <LogOut size={16} className="text-gray-500"/>
-                 Onboarding
+                 Logout / Reset
                </span>
                <span className="text-xs text-gray-400 bg-white px-2 py-1 rounded-md border shadow-sm">Reset</span>
              </button>
